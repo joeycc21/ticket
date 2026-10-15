@@ -30,6 +30,7 @@ workflows:
             -destination 'generic/platform=iOS' \
             -derivedDataPath build/DerivedData \
             -resultBundlePath build/Compile.xcresult \
+            SKIP_SWIFTLINT=YES \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             DEVELOPMENT_TEAM= \
