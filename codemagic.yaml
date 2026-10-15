@@ -1,0 +1,40 @@
+workflows:
+  ipad-compile-check:
+    name: iPad Stream Deck - unsigned compile check
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      xcode: latest
+    scripts:
+      - name: Check project layout
+        script: |
+          set -euo pipefail
+          test -f "Example/StreamDeckKitExample.xcodeproj/project.pbxproj"
+          test -f "Package.swift"
+          mkdir -p build
+          xcodebuild -version
+      - name: Resolve Swift dependencies
+        script: |
+          set -euo pipefail
+          xcodebuild -resolvePackageDependencies \
+            -project "Example/StreamDeckKitExample.xcodeproj" \
+            -scheme "StreamDeckKitExample App" \
+            2>&1 | tee build/dependencies.log
+      - name: Compile for a physical iPad without signing
+        script: |
+          set -euo pipefail
+          xcodebuild build \
+            -project "Example/StreamDeckKitExample.xcodeproj" \
+            -scheme "StreamDeckKitExample App" \
+            -configuration Debug \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/DerivedData \
+            -resultBundlePath build/Compile.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            DEVELOPMENT_TEAM= \
+            PRODUCT_BUNDLE_IDENTIFIER=com.foodtruck.hardwaretest \
+            2>&1 | tee build/compile.log
+    artifacts:
+      - build/*.log
+      - build/Compile.xcresult
