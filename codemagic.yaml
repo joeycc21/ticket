@@ -36,6 +36,22 @@ workflows:
             DEVELOPMENT_TEAM= \
             PRODUCT_BUNDLE_IDENTIFIER=com.foodtruck.hardwaretest \
             2>&1 | tee build/compile.log
+      - name: Package unsigned IPA for Sideloadly
+        script: |
+          set -euo pipefail
+          app_path="build/DerivedData/Build/Products/Debug-iphoneos/StreamDeckKit StreamDeckKitExample.app"
+          test -d "$app_path"
+          test -f "$app_path/Info.plist"
+          executable=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app_path/Info.plist")
+          test -f "$app_path/$executable"
+          mkdir -p build/ipa/Payload
+          ditto "$app_path" "build/ipa/Payload/$(basename "$app_path")"
+          (
+            cd build/ipa
+            /usr/bin/zip -qry ../StreamDeck-iPad-Test-unsigned.ipa Payload
+          )
+          /usr/bin/unzip -t build/StreamDeck-iPad-Test-unsigned.ipa
     artifacts:
+      - build/*-unsigned.ipa
       - build/*.log
       - build/Compile.xcresult
